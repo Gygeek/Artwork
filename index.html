@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immersive Artwork Gallery</title>
+    <style>
+        /* Basic reset and font setup */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Prevents scrollbars */
+            background-color: #000;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Main container for the gallery */
+        .gallery-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /*
+         * Styling for the image elements.
+         * We use two image tags to create a smooth cross-fade.
+         * One image is visible while the next one is loading in the "background"
+         * and then faded in.
+        */
+        .gallery-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* This is key: it scales the image to fill the element, cropping if necessary, without distortion. */
+            opacity: 0;
+            transition: opacity 2.5s ease-in-out; /* Slow, elegant fade transition */
+            transform: scale(1.0); /* Initial scale for animation */
+        }
+        
+        /* Class to make the image visible */
+        .gallery-image.visible {
+            opacity: 1;
+        }
+
+        /*
+         * The "Ken Burns" effect: a subtle, slow zoom and pan.
+         * We apply this animation to the visible image.
+        */
+        .gallery-image.animate-ken-burns {
+            animation: kenBurns 20s infinite;
+        }
+
+        @keyframes kenBurns {
+            0% {
+                transform: scale(1.0) translate(0, 0);
+            }
+            50% {
+                transform: scale(1.1) translate(-2%, 2%);
+            }
+            100% {
+                transform: scale(1.0) translate(0, 0);
+            }
+        }
+
+        /* Styling for the loading indicator */
+        .loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+            z-index: 20;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+        }
+        
+        /* Simple navigation arrows */
+        .nav-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.2);
+            color: white;
+            border: none;
+            font-size: 3rem;
+            padding: 10px 20px;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s ease, opacity 0.5s ease;
+            opacity: 0; /* Initially hidden */
+        }
+
+        .gallery-container:hover .nav-arrow {
+            opacity: 1; /* Show on hover over the main container */
+        }
+
+        .nav-arrow:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        #prev-btn {
+            left: 10px;
+        }
+
+        #next-btn {
+            right: 10px;
+        }
+        
+        /* * Styles for the artwork description panel.
+         * This is ready to be used when you uncomment the HTML below.
+        */
+        .artwork-info {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            color: white;
+            padding: 40px 30px 20px;
+            box-sizing: border-box;
+            z-index: 5;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            pointer-events: none; /* Allows clicks to go "through" it */
+        }
+        
+        .artwork-info h2 {
+            margin: 0 0 5px 0;
+            font-size: 1.5rem;
+        }
+
+        .artwork-info p {
+            margin: 0;
+            font-size: 1rem;
+            max-width: 80%;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- The main container where images will be displayed -->
+    <div class="gallery-container" id="gallery-container">
+        <!-- We use two image elements to handle the crossfade effect -->
+        <img src="" alt="Artwork" class="gallery-image" id="image1">
+        <img src="" alt="Artwork" class="gallery-image" id="image2">
+    </div>
+
+    <!-- A simple message to show while the first image loads -->
+    <div class="loader" id="loader">Loading Artwork...</div>
+
+    <!-- Navigation Buttons -->
+    <button id="prev-btn" class="nav-arrow">&lt;</button>
+    <button id="next-btn" class="nav-arrow">&gt;</button>
+    
+    <!-- 
+      ARTWORK INFORMATION PANEL
+      To activate this feature:
+      1. Uncomment the entire 'div' block below.
+      2. Ensure your `artworkCollection` objects in the script have `title`, `artist`, and `description` properties.
+    -->
+    <!--
+    <div class="artwork-info" id="artwork-info">
+        <h2 id="artwork-title"></h2>
+        <p id="artwork-artist"></p>
+    </div>
+    -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- CONFIGURATION ---
+            
+            // A list of artworks. Add your own original artwork here.
+            // Make sure to include title and artist for the info panel.
+            const artworkCollection = [
+                {
+                    src: 'https://www.artic.edu/iiif/2/85da3398-3843-1763-8a7a-6458316c0245/full/1600,/0/default.jpg',
+                    alt: 'The Bedroom by Vincent van Gogh',
+                    title: 'The Bedroom',
+                    artist: 'Vincent van Gogh'
+                },
+                {
+                    src: 'https://www.artic.edu/iiif/2/c291c018-4c17-746a-4279-7a5642a8b37f/full/1600,/0/default.jpg',
+                    alt: 'A Sunday on La Grande Jatte by Georges Seurat',
+                    title: 'A Sunday on La Grande Jatte',
+                    artist: 'Georges Seurat'
+                },
+                {
+                    src: 'https://www.artic.edu/iiif/2/25c31d8d-21a4-9ea1-1d73-6a2a3594b341/full/1600,/0/default.jpg',
+                    alt: 'Nighthawks by Edward Hopper',
+                    title: 'Nighthawks',
+                    artist: 'Edward Hopper'
+                },
+                {
+                    src: 'https://www.artic.edu/iiif/2/68d2b4dc-043d-9786-5384-88b6a37b7969/full/1600,/0/default.jpg',
+                    alt: 'The Great Wave off Kanagawa by Katsushika Hokusai',
+                    title: 'The Great Wave off Kanagawa',
+                    artist: 'Katsushika Hokusai'
+                },
+                {
+                    src: 'https://www.artic.edu/iiif/2/f8c3f46f-723a-829f-f513-5f0d66215b49/full/1600,/0/default.jpg',
+                    alt: 'Paris Street; Rainy Day by Gustave Caillebotte',
+                    title: 'Paris Street; Rainy Day',
+                    artist: 'Gustave Caillebotte'
+                },
+                 {
+                    src: 'https://www.artic.edu/iiif/2/a1c3b4d1-81f1-334e-4396-17b5f09105cf/full/1600,/0/default.jpg',
+                    alt: 'American Gothic by Grant Wood',
+                    title: 'American Gothic',
+                    artist: 'Grant Wood'
+                }
+            ];
+
+            const slideInterval = 3000; // Time in ms between transitions (3 seconds)
+            const inactivityResumeTime = 5000; // Time in ms to wait after user activity before resuming slideshow (5 seconds)
+
+            // --- ELEMENT REFERENCES ---
+            const image1 = document.getElementById('image1');
+            const image2 = document.getElementById('image2');
+            const loader = document.getElementById('loader');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            // Note: These will be null if the HTML is commented out, so we check for their existence before using them.
+            const artworkInfo = document.getElementById('artwork-info');
+            const artworkTitle = document.getElementById('artwork-title');
+            const artworkArtist = document.getElementById('artwork-artist');
+
+            // --- STATE ---
+            let currentIndex = -1; // Start at -1 to handle initial load correctly
+            let currentImageElement = image1;
+            let nextImageElement = image2;
+            let slideTimer;
+            let inactivityTimer;
+
+            // --- FUNCTIONS ---
+
+            /**
+             * Preloads an image to ensure it's cached before display.
+             */
+            function preloadImage(url) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = url;
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+            }
+
+            /**
+             * Core function to display a specific artwork by its index.
+             */
+            function displayArtwork(newIndex) {
+                if (newIndex === currentIndex) return; // Don't reload the same image
+
+                const artwork = artworkCollection[newIndex];
+                if (!artwork) return;
+
+                preloadImage(artwork.src).then(() => {
+                    nextImageElement.src = artwork.src;
+                    nextImageElement.alt = artwork.alt;
+
+                    currentImageElement.classList.remove('visible', 'animate-ken-burns');
+                    nextImageElement.classList.add('visible', 'animate-ken-burns');
+
+                    // Update info panel, but only if it exists (i.e., is not commented out)
+                    if (artworkInfo && artworkTitle && artworkArtist) {
+                        artworkTitle.textContent = artwork.title || '';
+                        artworkArtist.textContent = artwork.artist || '';
+                    }
+
+                    [currentImageElement, nextImageElement] = [nextImageElement, currentImageElement];
+                    currentIndex = newIndex;
+                }).catch(err => {
+                    console.error("Failed to preload image:", err);
+                });
+            }
+            
+            /**
+             * Determines the next or previous index and calls displayArtwork.
+             */
+            function advanceSlide(direction) {
+                let newIndex;
+                if (direction === 'next') {
+                    newIndex = (currentIndex + 1) % artworkCollection.length;
+                } else { // 'prev'
+                    newIndex = (currentIndex - 1 + artworkCollection.length) % artworkCollection.length;
+                }
+                displayArtwork(newIndex);
+            }
+
+            /**
+             * Starts the automatic slideshow.
+             */
+            function startAutoplay() {
+                clearInterval(slideTimer); // Always clear any old timer
+                slideTimer = setInterval(() => advanceSlide('next'), slideInterval);
+            }
+
+            /**
+             * Pauses the automatic slideshow and sets a timer to resume it after a period of inactivity.
+             */
+            function handleUserActivity() {
+                clearInterval(slideTimer);
+                clearTimeout(inactivityTimer);
+                inactivityTimer = setTimeout(startAutoplay, inactivityResumeTime);
+            }
+
+            /**
+             * Handles manual navigation via buttons or keys.
+             */
+            function manualNavigate(direction) {
+                handleUserActivity(); // Treat manual navigation as user activity
+                advanceSlide(direction); // Change slide immediately
+            }
+
+            /**
+             * Starts the gallery on page load.
+             */
+            function startGallery() {
+                if (!artworkCollection || artworkCollection.length === 0) {
+                    loader.textContent = 'No artwork to display.';
+                    return;
+                }
+
+                loader.classList.remove('hidden');
+
+                // Load the first image
+                displayArtwork(0);
+
+                // Wait for the first image to be ready before hiding loader and starting autoplay
+                const firstImage = new Image();
+                firstImage.src = artworkCollection[0].src;
+                firstImage.onload = () => {
+                     loader.classList.add('hidden');
+                     startAutoplay();
+                     // Preload the second image for a smooth first transition
+                     if(artworkCollection.length > 1) {
+                         preloadImage(artworkCollection[1].src);
+                     }
+                };
+                firstImage.onerror = () => {
+                    loader.textContent = 'Error loading artwork.';
+                }
+            }
+            
+            // --- EVENT LISTENERS ---
+            nextBtn.addEventListener('click', () => manualNavigate('next'));
+            prevBtn.addEventListener('click', () => manualNavigate('prev'));
+            
+            // Listen for mouse movement anywhere on the page
+            document.addEventListener('mousemove', handleUserActivity);
+
+            // Listen for keyboard arrow keys for navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    manualNavigate('next');
+                } else if (e.key === 'ArrowLeft') {
+                    manualNavigate('prev');
+                }
+            });
+            
+            // Kick everything off
+            startGallery();
+        });
+    </script>
+</body>
+</html>
