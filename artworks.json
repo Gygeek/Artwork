@@ -49,7 +49,105 @@
     "artist": "Steve"
   },
   {
-    "src": "images/bluechaos.webp",
+    "src": "images/pencildwelling.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/waterbunny.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/waterbird.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/pencildance.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/doodle4.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/equineabstract.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/kimsship.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/doodle3.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/doodle2.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/doodle1.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/electronchaos.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/ghosted.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/guitarfrenzy.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/steed.webp",
+    "alt": "Oil on Canvas",
+    "title": "A Silouette",
+    "disposition": "Sold",
+    "artist": "Steve"
+  },
+  {
+    "src": "images/dance.webp",
     "alt": "Oil on Canvas",
     "title": "A Silouette",
     "disposition": "Sold",
