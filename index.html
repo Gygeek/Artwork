@@ -28,8 +28,6 @@
         /*
          * Styling for the image elements.
          * We use two image tags to create a smooth cross-fade.
-         * One image is visible while the next one is loading in the "background"
-         * and then faded in.
         */
         .gallery-image {
             position: absolute;
@@ -37,10 +35,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* This is key: it scales the image to fill the element, cropping if necessary, without distortion. */
+            /*
+             * CHANGE: 'contain' ensures the whole image is visible without cropping.
+             * It will be scaled down to fit, adding black bars if aspect ratios differ.
+             * Previous value was 'cover'.
+            */
+            object-fit: contain;
             opacity: 0;
             transition: opacity 2.5s ease-in-out; /* Slow, elegant fade transition */
-            transform: scale(1.0); /* Initial scale for animation */
         }
         
         /* Class to make the image visible */
@@ -49,24 +51,8 @@
         }
 
         /*
-         * The "Ken Burns" effect: a subtle, slow zoom and pan.
-         * We apply this animation to the visible image.
+         * CHANGE: The Ken Burns (zoom) effect and its animation keyframes have been removed.
         */
-        .gallery-image.animate-ken-burns {
-            animation: kenBurns 20s infinite;
-        }
-
-        @keyframes kenBurns {
-            0% {
-                transform: scale(1.0) translate(0, 0);
-            }
-            50% {
-                transform: scale(1.1) translate(-2%, 2%);
-            }
-            100% {
-                transform: scale(1.0) translate(0, 0);
-            }
-        }
 
         /* Styling for the loading indicator */
         .loader {
@@ -223,9 +209,10 @@
                 preloadImage(artwork.src).then(() => {
                     nextImageElement.src = artwork.src;
                     nextImageElement.alt = artwork.alt;
-
-                    currentImageElement.classList.remove('visible', 'animate-ken-burns');
-                    nextImageElement.classList.add('visible', 'animate-ken-burns');
+                    
+                    // CHANGE: Removed the 'animate-ken-burns' class logic.
+                    currentImageElement.classList.remove('visible');
+                    nextImageElement.classList.add('visible');
 
                     if (artworkInfo && artworkTitle && artworkArtist) {
                         artworkTitle.textContent = artwork.title || '';
