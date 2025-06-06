@@ -168,7 +168,7 @@
       ARTWORK INFORMATION PANEL
       To activate this feature:
       1. Uncomment the entire 'div' block below.
-      2. Ensure your `artworkCollection` objects in the script have `title` and `artist` properties.
+      2. Ensure your `artworks.json` objects have `title` and `artist` properties.
     -->
     <!--
     <div class="artwork-info" id="artwork-info">
@@ -180,71 +180,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- CONFIGURATION ---
-            
-            /*
-             * ===================================================================
-             * HOW TO USE YOUR OWN IMAGES
-             * ===================================================================
-             * 1. Create a folder named `images` in the same directory as this `index.html` file.
-             * 2. Place all your image files (e.g., `painting1.jpg`, `photo2.png`) inside that `images` folder.
-             * 3. Replace the `artworkCollection` list below with your own file information.
-             *
-             * EXAMPLE:
-             *
-             * const artworkCollection = [
-             * {
-             * src: 'images/my-first-painting.jpg',
-             * alt: 'A description of my first painting for screen readers',
-             * title: 'Sunset Over Water',
-             * artist: 'Your Name'
-             * },
-             * {
-             * src: 'images/my-cool-sculpture.png',
-             * alt: 'A photo of my cool sculpture',
-             * title: 'Shapes in Motion',
-             * artist: 'Your Name'
-             * }
-             * ];
-             * ===================================================================
-            */
-            
-            // **FIXED** This list now uses a reliable placeholder service (picsum.photos) that will not block requests.
-            // Replace this with your own local files as instructed above.
-            const artworkCollection = [
-                {
-                    src: 'https://picsum.photos/id/1015/1920/1080',
-                    alt: 'A random landscape image from a placeholder service',
-                    title: 'Sample Image 1',
-                    artist: 'Placeholder Service'
-                },
-                {
-                    src: 'https://picsum.photos/id/1018/1920/1080',
-                    alt: 'A random landscape image from a placeholder service',
-                    title: 'Sample Image 2',
-                    artist: 'Placeholder Service'
-                },
-                {
-                    src: 'https://picsum.photos/id/1025/1920/1080',
-                    alt: 'A random animal image from a placeholder service',
-                    title: 'Sample Image 3',
-                    artist: 'Placeholder Service'
-                },
-                {
-                    src: 'https://picsum.photos/id/1040/1920/1080',
-                    alt: 'A random architecture image from a placeholder service',
-                    title: 'Sample Image 4',
-                    artist: 'Placeholder Service'
-                },
-                {
-                    src: 'https://picsum.photos/id/1050/1920/1080',
-                    alt: 'A random nature image from a placeholder service',
-                    title: 'Sample Image 5',
-                    artist: 'Placeholder Service'
-                }
-            ];
-
             const slideInterval = 3000; // Time in ms between transitions (3 seconds)
             const inactivityResumeTime = 5000; // Time in ms to wait after user activity before resuming slideshow (5 seconds)
+
+            // --- GLOBAL VARIABLES ---
+            let artworkCollection = []; // This will be populated by fetching the JSON file.
 
             // --- ELEMENT REFERENCES ---
             const image1 = document.getElementById('image1');
@@ -258,7 +198,7 @@
             const artworkArtist = document.getElementById('artwork-artist');
 
             // --- STATE ---
-            let currentIndex = -1; // Start at -1 to handle initial load correctly
+            let currentIndex = -1;
             let currentImageElement = image1;
             let nextImageElement = image2;
             let slideTimer;
@@ -269,8 +209,7 @@
             function preloadImage(url) {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
-                    // Add a timestamp to prevent caching issues with some placeholder services
-                    img.src = url.includes('?') ? `${url}&t=${new Date().getTime()}` : `${url}?t=${new Date().getTime()}`;
+                    img.src = url;
                     img.onload = resolve;
                     img.onerror = reject;
                 });
@@ -325,33 +264,37 @@
                 advanceSlide(direction);
             }
 
-            function startGallery() {
+            function setupAndRunGallery() {
                 if (!artworkCollection || artworkCollection.length === 0) {
                     loader.textContent = 'No artwork to display.';
                     return;
                 }
-
-                // Note: We are no longer hiding the loader here, we let the firstImage.onload handle it.
-
-                const firstArtwork = artworkCollection[0];
-                const firstImage = new Image();
                 
-                // Add a timestamp to prevent caching issues with some placeholder services
-                const firstImageUrl = firstArtwork.src.includes('?') ? `${firstArtwork.src}&t=${new Date().getTime()}` : `${firstArtwork.src}?t=${new Date().getTime()}`;
-                firstImage.src = firstImageUrl;
+                // Hide loader and start the show
+                loader.classList.add('hidden');
+                displayArtwork(0);
+                startAutoplay();
                 
-                firstImage.onload = () => {
-                     loader.classList.add('hidden');
-                     displayArtwork(0); // Display the first image
-                     startAutoplay();
-                     // Preload the second image for a smooth first transition
-                     if(artworkCollection.length > 1) {
-                         preloadImage(artworkCollection[1].src);
-                     }
-                };
-                firstImage.onerror = () => {
-                    loader.textContent = 'Error loading artwork. Please check image URLs.';
-                    console.error("Failed to load initial image:", firstArtwork.src);
+                // Preload the second image for a smooth first transition
+                if (artworkCollection.length > 1) {
+                    preloadImage(artworkCollection[1].src);
+                }
+            }
+
+            /**
+             * NEW: Fetches the artwork data from the JSON file and starts the gallery.
+             */
+            async function initializeGallery() {
+                try {
+                    const response = await fetch('artworks.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    artworkCollection = await response.json();
+                    setupAndRunGallery();
+                } catch (error) {
+                    console.error('Could not fetch or parse artworks.json:', error);
+                    loader.textContent = 'Error: Could not load the artwork collection.';
                 }
             }
             
@@ -367,8 +310,8 @@
                 }
             });
             
-            // Kick everything off
-            startGallery();
+            // --- KICK EVERYTHING OFF ---
+            initializeGallery();
         });
     </script>
 </body>
